@@ -1,25 +1,32 @@
-import logo from './logo.svg';
+import React, { useEffect, useState } from "react";
+import io from 'socket.io-client';
 import './App.css';
 
-function App() {
+const socket = io('http://localhost:4000');
+const guildName = 'Gangue do Meubom';
+const App = () => {
+  const [characters, setCharacters] = useState([]);
+
+  useEffect(() => {
+    socket.on('statusUpdate', (data) => {
+      setCharacters((prev) => [...prev, data]);
+    });
+
+    return () => socket.off('statusUpdate');
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <div className="App">
+          <div>
+              <h1>{guildName} Guild Characters</h1>
+              <ul>
+                  {characters.map((char, index) => (
+                      <li key={index}>{char.name} - {char.status}</li>
+                  ))}
+              </ul>
+          </div>
+      </div>
   );
-}
+};
 
 export default App;
