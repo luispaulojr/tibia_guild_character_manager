@@ -15,10 +15,22 @@ const io = socketIo(server, {
 app.get('/api/character/:name', async (req, res) => {
     const characterName = req.params.name;
     try {
-        const response = await axios.get(`https://api.tibiadata.com/v2/characters/${characterName}.json`);
+        console.log(`Fetching data for ${characterName}`);
+        const response = await axios.get(`https://api.tibiadata.com/v4/character/${characterName}`);
         res.json(response.data);
     } catch (error) {
         res.status(500).send('Error fetching character data');
+    }
+});
+
+app.get('/api/guild/:name', async (req, res) => {
+    const guildName = req.params.name;
+    try {
+        console.log(`Fetching data for ${guildName}`);
+        const response = await axios.get(`https://api.tibiadata.com/v4/guild/${guildName}`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).send('Error fetching guild data');
     }
 });
 
