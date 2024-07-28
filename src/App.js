@@ -1,32 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
-import './App.css';
 
 const socket = io('http://localhost:4000');
-const guildName = 'Gangue do Meubom';
+
 const App = () => {
-  const [characters, setCharacters] = useState([]);
+    const [characters, setCharacters] = useState([]);
 
-  useEffect(() => {
-    socket.on('statusUpdate', (data) => {
-      setCharacters((prev) => [...prev, data]);
-    });
+    useEffect(() => {
+        socket.on('statusUpdate', (data) => {
+            setCharacters((prev) => {
+                const index = prev.findIndex(char => char.name === data.name);
+                if (index > -1) {
+                    prev[index] = data;
+                    return [...prev];
+                }
+                return [...prev, data];
+            });
+        });
 
-    return () => socket.off('statusUpdate');
-  }, []);
+        return () => socket.off('statusUpdate');
+    }, []);
 
-  return (
-      <div className="App">
-          <div>
-              <h1>{guildName} Guild Characters</h1>
-              <ul>
-                  {characters.map((char, index) => (
-                      <li key={index}>{char.name} - {char.status}</li>
-                  ))}
-              </ul>
-          </div>
-      </div>
-  );
+    return (
+        <div>
+            <h1>Gangue do Meubom Guild Characters</h1>
+            <ul>
+                {characters.map((char, index) => (
+                    <li key={index}><span className={char.status === 'online' ? "online" : "offline"}>{char.status}</span> [{char.level}] {char.name} ({char.vocation}) - Rank: {char.guild_rank}</li>
+                ))}
+            </ul>
+        </div>
+    );
 };
 
 export default App;
