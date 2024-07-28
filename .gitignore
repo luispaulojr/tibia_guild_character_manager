@@ -50,6 +50,7 @@ web_modules/
 
 # Idea directory
 *.idea
+.idea/
 
 # Optional npm cache directory
 .npm
