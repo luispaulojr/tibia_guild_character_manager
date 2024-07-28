@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const apiUrl = 'https://api.tibiadata.com/v4';
 const io = socketIo(server, {
     cors: {
-        origin: "*", // Allow requests from the React app
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
@@ -16,6 +16,7 @@ const io = socketIo(server, {
 const fetchCharacterData = async (characterName) => {
     try {
         const response = await axios.get(`${apiUrl}/character/${characterName}`);
+        console.log(`Character data for ${characterName}:`, response.data);
         return response.data;
     } catch (error) {
         console.error(`Error fetching character data for ${characterName}:`, error);
@@ -26,7 +27,7 @@ const fetchCharacterData = async (characterName) => {
 const fetchGuildData = async (guildName) => {
     try {
         const response = await axios.get(`${apiUrl}/guild/${guildName}`);
-        console.log(`Guild data for ${guildName}:`, response.data); // Log the response data
+        console.log(`Guild data for ${guildName}:`, response.data);
         return response.data;
     } catch (error) {
         console.error(`Error fetching guild data for ${guildName}:`, error);
@@ -59,22 +60,32 @@ app.get('/api/guild/:name', async (req, res) => {
 io.on('connection', (socket) => {
     console.log('New client connected');
 
-    // Function to check and emit status of guild members
     const checkGuildMembersStatus = async (guildName) => {
         try {
             const guildData = await fetchGuildData(guildName);
             if (guildData.guild && guildData.guild.members) {
                 const members = guildData.guild.members;
+                const batchSize = 10;
 
-                for (const member of members) {
-                    const characterData = await fetchCharacterData(member.name);
-                    if (characterData.character) {
-                        const character = characterData.character.character;
-                        socket.emit('statusUpdate', { name: member.name, status: member.status, level:  character.level, vocation: character.vocation, guild_rank: character.guild.rank });
-                    } else {
-                        console.error(`Character data for ${member.name} is missing 'data' property`);
-                    }
+                for (let i = 0; i < members.length; i += batchSize) {
+                    const batch = members.slice(i, i + batchSize);
+                    const characterPromises = batch.map(member => fetchCharacterData(member.name));
+                    const characterDataArray = await Promise.all(characterPromises);
+
+                    characterDataArray.forEach((characterData, index) => {
+                        if (characterData.character) {
+                            characterData.character.character.status = batch[index].status || 'unknown';
+                            socket.emit('statusUpdate', characterData.character );
+                            console.log(characterData.character.character)
+                        } else {
+                            console.error(`Character data for ${batch[index].name} is missing 'character' property`);
+                        }
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Delay next batch
                 }
+
+                socket.emit('loadingComplete'); // Notify client loading is complete
             } else {
                 console.error(`Guild data for ${guildName} is missing 'guild' or 'members' property`);
             }
@@ -83,13 +94,15 @@ io.on('connection', (socket) => {
         }
     };
 
-    // Check status of guild members every 60 seconds
-    const guildName = "Gangue do Meubom"; // Replace with the actual guild name
-    setInterval(() => checkGuildMembersStatus(guildName), 10000);
+    const guildName = "Gangue do Meubom";
+    setInterval(() => checkGuildMembersStatus(guildName), 60000);
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
+
+    // Initial load
+    checkGuildMembersStatus(guildName);
 });
 
 const PORT = process.env.PORT || 4000;
