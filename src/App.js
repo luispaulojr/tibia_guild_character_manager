@@ -13,10 +13,7 @@ const App = () => {
     useEffect(() => {
         const handleStatusUpdate = (data) => {
             setCharacters((prev) => {
-                console.log(prev)
-                console.log(data.character.name)
                 const index = prev.findIndex(char => char.character.character.name === data.character.name);
-                console.log(index)
                 if (index > -1) {
                     const updatedCharacters = [...prev];
                     updatedCharacters[index] = { ...updatedCharacters[index], character: { ...updatedCharacters[index].character, status: data.character.status } };
