@@ -13,33 +13,38 @@ const App = () => {
     useEffect(() => {
         const handleStatusUpdate = (data) => {
             setCharacters((prev) => {
-                const index = prev.findIndex(char => char.character.character.name === data.character.name);
+                const index = prev.findIndex(char => char.character.name === data.character.name);
                 if (index > -1) {
                     const updatedCharacters = [...prev];
-                    updatedCharacters[index] = { ...updatedCharacters[index], character: { ...updatedCharacters[index].character, status: data.character.status } };
+                    updatedCharacters[index] = data;
                     return updatedCharacters;
                 }
-                return [...prev, { character: data }];
+                return [...prev, data];
             });
         };
 
-        socket.on('statusUpdate', handleStatusUpdate);
-
-        socket.on('loadingComplete', () => {
+        const handleLoadingComplete = () => {
             setLoading(false);
-        });
+        };
+
+        socket.on('statusUpdate', handleStatusUpdate);
+        socket.on('loadingComplete', handleLoadingComplete);
 
         socket.emit('requestGuildStatus', guildName); // Request status updates for the guild
 
         return () => {
             socket.off('statusUpdate', handleStatusUpdate);
-            socket.off('loadingComplete');
+            socket.off('loadingComplete', handleLoadingComplete);
         };
     }, [guildName]); // Re-run effect when guildName changes
 
+    const allCount = characters.length;
+    const onlineCount = characters.filter(char => char.character.status === 'online').length;
+    const offlineCount = characters.filter(char => char.character.status === 'offline').length;
+
     const filteredCharacters = characters.filter(char => {
         if (filter === 'all') return true;
-        return char.character.character.status === filter;
+        return char.character.status === filter;
     });
 
     const renderTable = (vocation) => (
@@ -55,14 +60,14 @@ const App = () => {
             </thead>
             <tbody>
             {filteredCharacters
-                .filter(char => char.character.character.vocation.includes(vocation))
+                .filter(char => char.character.vocation.includes(vocation))
                 .map((char, index) => (
-                    <tr key={index} className={char.character.character.status === 'online' ? "online" : "offline"}>
-                        <td>{char.character.character.name}</td>
-                        <td>{char.character.character.level}</td>
-                        <td>{char.character.character.vocation}</td>
-                        <td>{char.character.character.status}</td>
-                        <td>{char.character.character.guild.rank}</td>
+                    <tr key={index} className={char.character.status === 'online' ? "online" : "offline"}>
+                        <td>{char.character.name}</td>
+                        <td>{char.character.level}</td>
+                        <td>{char.character.vocation}</td>
+                        <td>{char.character.status}</td>
+                        <td>{char.character.guild.rank}</td>
                     </tr>
                 ))}
             </tbody>
@@ -73,22 +78,27 @@ const App = () => {
         <div className="app-container">
             <h1>{guildName} Guild Characters</h1>
             <div className="filter-buttons">
-                <button onClick={() => setFilter('all')} className={filter === 'all' ? 'active' : ''}>All</button>
-                <button onClick={() => setFilter('online')} className={filter === 'online' ? 'active' : ''}>Online</button>
-                <button onClick={() => setFilter('offline')} className={filter === 'offline' ? 'active' : ''}>Offline</button>
+                <button onClick={() => setFilter('all')} className={filter === 'all' ? 'active' : ''}>
+                    All ({allCount})
+                </button>
+                <button onClick={() => setFilter('online')} className={filter === 'online' ? 'active' : ''}>
+                    Online ({onlineCount})
+                </button>
+                <button onClick={() => setFilter('offline')} className={filter === 'offline' ? 'active' : ''}>
+                    Offline ({offlineCount})
+                </button>
             </div>
-            {loading ? (
+            {loading && (
                 <div className="loading">Loading...</div>
-            ) : (
-                <div className="tables-container">
-                    {['Knight', 'Paladin', 'Sorcerer', 'Druid'].map(vocation => (
-                        <div key={vocation} className="vocation-section">
-                            <h2>{vocation}</h2>
-                            {renderTable(vocation)}
-                        </div>
-                    ))}
-                </div>
             )}
+            <div className="tables-container">
+                {['Knight', 'Paladin', 'Sorcerer', 'Druid'].map(vocation => (
+                    <div key={vocation} className="vocation-section">
+                        <h2>{vocation}</h2>
+                        {renderTable(vocation)}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
