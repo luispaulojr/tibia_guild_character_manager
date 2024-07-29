@@ -1,40 +1,48 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
 const socket = io('http://localhost:4000');
-const guildName = 'Gangue do Meubom';
 
 const App = () => {
     const [characters, setCharacters] = useState([]);
     const [filter, setFilter] = useState('all');
     const [loading, setLoading] = useState(true);
+    const [guildName] = useState('Gangue do Meubom'); // Default guild name
 
     useEffect(() => {
-        socket.on('statusUpdate', (data) => {
+        const handleStatusUpdate = (data) => {
             setCharacters((prev) => {
-                const index = prev.findIndex(char => char.character.name === data.name);
+                console.log(prev)
+                console.log(data.character.name)
+                const index = prev.findIndex(char => char.character.character.name === data.character.name);
+                console.log(index)
                 if (index > -1) {
-                    prev[index] = data;
-                    return [...prev];
+                    const updatedCharacters = [...prev];
+                    updatedCharacters[index] = { ...updatedCharacters[index], character: { ...updatedCharacters[index].character, status: data.character.status } };
+                    return updatedCharacters;
                 }
-                return [...prev, data];
+                return [...prev, { character: data }];
             });
-        });
+        };
+
+        socket.on('statusUpdate', handleStatusUpdate);
 
         socket.on('loadingComplete', () => {
             setLoading(false);
         });
 
+        socket.emit('requestGuildStatus', guildName); // Request status updates for the guild
+
         return () => {
-            socket.off('statusUpdate');
+            socket.off('statusUpdate', handleStatusUpdate);
             socket.off('loadingComplete');
         };
-    }, []);
+    }, [guildName]); // Re-run effect when guildName changes
 
     const filteredCharacters = characters.filter(char => {
         if (filter === 'all') return true;
-        return char.character.status === filter;
+        return char.character.character.status === filter;
     });
 
     const renderTable = (vocation) => (
@@ -49,14 +57,15 @@ const App = () => {
             </tr>
             </thead>
             <tbody>
-            {filteredCharacters.filter(char => char.character.vocation.match(vocation)).map((char, index) =>
-                (
-                    <tr key={index} className={char.character.status === 'online' ? "online" : "offline"}>
-                        <td>{char.character.name}</td>
-                        <td>{char.character.level}</td>
-                        <td>{char.character.vocation}</td>
-                        <td>{char.character.status}</td>
-                        <td>{char.character.guild.rank}</td>
+            {filteredCharacters
+                .filter(char => char.character.character.vocation.includes(vocation))
+                .map((char, index) => (
+                    <tr key={index} className={char.character.character.status === 'online' ? "online" : "offline"}>
+                        <td>{char.character.character.name}</td>
+                        <td>{char.character.character.level}</td>
+                        <td>{char.character.character.vocation}</td>
+                        <td>{char.character.character.status}</td>
+                        <td>{char.character.character.guild.rank}</td>
                     </tr>
                 ))}
             </tbody>
