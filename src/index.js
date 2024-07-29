@@ -16,8 +16,8 @@ const io = socketIo(server, {
 const fetchCharacterData = async (characterName) => {
     try {
         const response = await axios.get(`${apiUrl}/character/${characterName}`);
-        console.log(`Character data for ${characterName}:`, response.data);
-        return response.data;
+        // console.log(`Character data for ${characterName}:`, response.data);
+        return response.data.character;
     } catch (error) {
         console.error(`Error fetching character data for ${characterName}:`, error);
         throw error;
@@ -27,8 +27,8 @@ const fetchCharacterData = async (characterName) => {
 const fetchGuildData = async (guildName) => {
     try {
         const response = await axios.get(`${apiUrl}/guild/${guildName}`);
-        console.log(`Guild data for ${guildName}:`, response.data);
-        return response.data;
+        // console.log(`Guild data for ${guildName}:`, response.data);
+        return response.data.guild;
     } catch (error) {
         console.error(`Error fetching guild data for ${guildName}:`, error);
         throw error;
@@ -38,7 +38,7 @@ const fetchGuildData = async (guildName) => {
 app.get('/api/character/:name', async (req, res) => {
     const characterName = req.params.name;
     try {
-        console.log(`Fetching data for ${characterName}`);
+        // console.log(`Fetching data for ${characterName}`);
         const data = await fetchCharacterData(characterName);
         res.json(data);
     } catch (error) {
@@ -49,7 +49,7 @@ app.get('/api/character/:name', async (req, res) => {
 app.get('/api/guild/:name', async (req, res) => {
     const guildName = req.params.name;
     try {
-        console.log(`Fetching data for ${guildName}`);
+        // console.log(`Fetching data for ${guildName}`);
         const data = await fetchGuildData(guildName);
         res.json(data);
     } catch (error) {
@@ -63,22 +63,25 @@ io.on('connection', (socket) => {
     const checkGuildMembersStatus = async (guildName) => {
         try {
             const guildData = await fetchGuildData(guildName);
-            if (guildData.guild && guildData.guild.members) {
-                const members = guildData.guild.members;
+            if (guildData && guildData.members) {
+                const members = guildData.members;
                 const batchSize = 10;
 
                 for (let i = 0; i < members.length; i += batchSize) {
                     const batch = members.slice(i, i + batchSize);
-                    const characterPromises = batch.map(member => fetchCharacterData(member.name));
+                    const characterPromises = batch.map(async member => {
+                        const data = await fetchCharacterData(member.name);
+                        data.character.status = member.status;
+                        return data;
+                    });
                     const characterDataArray = await Promise.all(characterPromises);
 
                     characterDataArray.forEach((characterData, index) => {
-                        if (characterData.character) {
-                            characterData.character.character.status = batch[index].status || 'unknown';
-                            socket.emit('statusUpdate', characterData.character );
-                            console.log(characterData.character.character)
+                        if (characterData) {
+                            const status = characterData.status || 'unknown';
+                            socket.emit('statusUpdate', { ...characterData, status });
                         } else {
-                            console.error(`Character data for ${batch[index].name} is missing 'character' property`);
+                            console.error(`Character data for ${batch[index].name} is missing`);
                         }
                     });
 
@@ -87,22 +90,21 @@ io.on('connection', (socket) => {
 
                 socket.emit('loadingComplete'); // Notify client loading is complete
             } else {
-                console.error(`Guild data for ${guildName} is missing 'guild' or 'members' property`);
+                console.error(`Guild data for ${guildName} is missing 'members' property`);
             }
         } catch (error) {
             console.error('Error fetching guild members status:', error);
         }
     };
 
-    const guildName = "Gangue do Meubom";
-    setInterval(() => checkGuildMembersStatus(guildName), 60000);
+    socket.on('requestGuildStatus', (guildName) => {
+        console.log(`Requesting status for guild: ${guildName}`);
+        checkGuildMembersStatus(guildName);
+    });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
-
-    // Initial load
-    checkGuildMembersStatus(guildName);
 });
 
 const PORT = process.env.PORT || 4000;
