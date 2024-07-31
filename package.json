@@ -2,6 +2,7 @@
   "name": "tibia-status-tracker",
   "version": "0.1.0",
   "private": true,
+  "proxy": "https://static.tibia.com",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -9,8 +10,10 @@
     "axios": "^1.7.2",
     "express": "^4.19.2",
     "http": "^0.0.1-security",
+    "luxon": "^3.4.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-icons": "^5.2.1",
     "react-scripts": "5.0.1",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",

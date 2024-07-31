@@ -3,8 +3,9 @@
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 80px;
   pointer-events: none;
+  margin-bottom: 20px; /* Adicione margem se necessário */
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -15,13 +16,14 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  min-height: 20vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  margin-bottom: 20px; /* Adicione esta linha se desejar um espaço entre o cabeçalho e o conteúdo */
 }
 
 .App-link {
@@ -35,4 +37,134 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.tables-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.vocation-section {
+  flex: 1 1 45%; /* Ajuste para controlar a largura de cada seção */
+  margin: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: #f9f9f9; /* Adiciona uma cor de fundo */
+}
+
+.character-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px; /* Espaçamento inferior para separar as tabelas */
+}
+
+.character-table th, .character-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.character-table th {
+  background-color: #f2f2f2;
+}
+
+.online {
+  background-color: #d4edda;
+}
+
+.offline {
+  background-color: #f8d7da;
+}
+
+.role-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.role-icon-wrapper .tooltip {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Position above the icon */
+  left: 50%;
+  margin-left: -60px; /* Center the tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.role-icon-wrapper:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.filter-buttons {
+  margin: 20px 0;
+}
+
+.filter-buttons button {
+  margin: 0 5px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.filter-buttons button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.gif-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.maker-icon {
+  font-size: 14px;
+  color: red;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+button svg {
+  vertical-align: middle;
+}
+
+.center-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.select-role {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
