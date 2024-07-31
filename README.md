@@ -46,7 +46,11 @@ Esta branch contém o código do servidor backend. O backend é responsável por
     ```sh
     npm install
     ```
-4. Inicie o servidor:
+4. Provisionar base:
+    ```sh
+    node initDb.js
+    ```
+5. Inicie o servidor:
     ```sh
     npm start
     ```
