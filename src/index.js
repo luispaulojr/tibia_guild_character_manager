@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
+const { DateTime } = require('luxon'); // Para manipulação de datas e fusos horários
 
 const app = express();
 const server = http.createServer(app);
@@ -68,6 +69,8 @@ const updateCharacterDetails = (name, role, location) => {
     });
 };
 
+app.use(express.json());
+
 app.get('/api/character/:name', async (req, res) => {
     const characterName = req.params.name;
     try {
@@ -76,7 +79,14 @@ app.get('/api/character/:name', async (req, res) => {
             if (err) {
                 res.status(500).send('Error fetching character details');
             } else {
-                res.json({ ...data, ...details });
+                const characterData = { ...data, ...details };
+                if (characterData.last_login) {
+                    // Converte last_login de CET para BRT
+                    const lastLoginCET = DateTime.fromISO(characterData.last_login, { zone: 'Europe/Amsterdam' });
+                    const lastLoginBRT = lastLoginCET.setZone('America/Sao_Paulo');
+                    characterData.last_login_brt = lastLoginBRT.toISO();
+                }
+                res.json(characterData);
             }
         });
     } catch (error) {
@@ -86,7 +96,6 @@ app.get('/api/character/:name', async (req, res) => {
 
 app.post('/api/character', (req, res) => {
     const { name, role, location } = req.body;
-    console.log(`Received data: Name - ${name}, Role - ${role}, Location - ${location}`);
     updateCharacterDetails(name, role, location);
     res.status(200).send('Character details updated');
 });
@@ -122,17 +131,22 @@ io.on('connection', (socket) => {
 
                     characterDataArray.forEach((characterData) => {
                         if (characterData) {
-                            getCharacterDetails(characterData.name, (err, details) => {
+                            getCharacterDetails(characterData.character.name, (err, details) => {
                                 if (!err) {
-                                    console.log(details)
-                                    const status = characterData.status || 'unknown';
+                                    const status = characterData.character.status || 'unknown';
+                                    if (characterData.character.last_login) {
+                                        // Converte last_login de CET para BRT
+                                        const lastLoginCET = DateTime.fromISO(characterData.character.last_login, { zone: 'Europe/Amsterdam' });
+                                        const lastLoginBRT = lastLoginCET.setZone('America/Sao_Paulo');
+                                        characterData.character.last_login_brt = lastLoginBRT.toISO();
+                                    }
                                     socket.emit('statusUpdate', { ...characterData, ...details, status });
                                 } else {
-                                    console.error(`Character data is missing for a member(${characterData.name}) in the batch`);
+                                    console.error(`Character data is missing for a member(${characterData.character.name}) in the batch`);
                                 }
                             });
                         } else {
-                            console.error(`Character data is missing for a member(${characterData.name}) in the batch`);
+                            console.error(`Character data is missing for a member(${characterData.character.name}) in the batch`);
                         }
                     });
 
