@@ -31,11 +31,14 @@ Este é o backend da aplicação que fornece dados dos personagens de uma guilda
     ```bash
     npm install
     ```
-
-2. Inicie o servidor:
+2. Provisionar base:
+    ```sh
+    node initDb.js
+    ```
+3. Inicie o servidor:
 
     ```bash
-    node src/index.js
+    npm start
     ```
 
 3. O servidor estará rodando em `http://localhost:4000`.
