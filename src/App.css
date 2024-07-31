@@ -1,3 +1,18 @@
+* {
+  font-family: Verdana, Arial, Times New Roman, sans-serif;
+  color: #5a2800;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #051122;
+  background-image:url(https://static.tibia.com/images/global/header/background-artwork.webp);
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+
 .App {
   text-align: center;
 }
@@ -39,6 +54,10 @@
   }
 }
 
+.guild-title {
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+}
+
 .tables-container {
   display: flex;
   flex-wrap: wrap;
@@ -52,7 +71,8 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 10px;
-  background-color: #f9f9f9; /* Adiciona uma cor de fundo */
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.25); /* Define 50% transparency */
 }
 
 .character-table {

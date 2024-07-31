@@ -34,7 +34,7 @@ const App = () => {
     const [roleFilter, setRoleFilter] = useState('allRoles');
     const [statusFilter, setStatusFilter] = useState('all');
     const [loading, setLoading] = useState(true);
-    const [guildName] = useState('<NOME_DA_GUILD>'); // Define the guild name
+    const [guildName] = useState('Gangue do Meubom'); // Define the guild name
 
     useEffect(() => {
         const handleStatusUpdate = (data) => {
@@ -202,7 +202,7 @@ const App = () => {
     return (
         <div className="app-container">
             <img src={tibiaLogo} className="app-logo" alt="Tibia Logo"/>
-            <h1>{guildName} Guild Characters</h1>
+            <h1 className="guild-title">{guildName} Guild Characters</h1>
             <div className="filter-buttons">
                 <button onClick={() => setRoleFilter('allRoles')} className={roleFilter === 'allRoles' ? 'active' : ''}>
                     All Roles
