@@ -34,7 +34,7 @@ const App = () => {
     const [roleFilter, setRoleFilter] = useState('allRoles');
     const [statusFilter, setStatusFilter] = useState('all');
     const [loading, setLoading] = useState(true);
-    const [guildName] = useState('Gangue do Meubom'); // Define the guild name
+    const [guildName] = useState('<GUILD_NAME>'); // Define the guild name
 
     useEffect(() => {
         const handleStatusUpdate = (data) => {
